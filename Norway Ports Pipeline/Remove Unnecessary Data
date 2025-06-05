@@ -1,0 +1,59 @@
+# First remove some unnecessary columns. this gives some errors in some files. in this code I also got parquet files but I do not pursured those files later.
+import pandas as pd
+from pathlib import Path
+
+# CONFIGURATION
+input_dir = Path(".")  # assumes notebook is in same folder as raw CSVs
+separate_csv_dir = Path("output_csv_separate")
+separate_parquet_dir = Path("output_parquet_separate")
+compiled_csv_path = Path("output_csv_compiled/compiled.csv")
+compiled_parquet_path = Path("output_parquet_compiled/compiled.parquet")
+
+# Create output directories
+separate_csv_dir.mkdir(parents=True, exist_ok=True)
+separate_parquet_dir.mkdir(parents=True, exist_ok=True)
+compiled_csv_path.parent.mkdir(parents=True, exist_ok=True)
+compiled_parquet_path.parent.mkdir(parents=True, exist_ok=True)
+
+# Columns to drop
+columns_to_drop = ["data_source", "ais_class", "hex_7", "hex_14", "geometry"]
+
+# Init
+compiled_csv = []
+compiled_parquet = []
+log = []
+
+# PROCESS EACH FILE
+for file in sorted(input_dir.glob("*.csv")):
+    try:
+        print(f"Processing {file.name} ...")
+        df = pd.read_csv(file)
+        rows_before = len(df)
+
+        df.drop(columns=[col for col in columns_to_drop if col in df.columns], inplace=True, errors='ignore')
+        rows_after = len(df)
+
+        # Save as individual CSV and Parquet
+        filename = file.stem
+        df.to_csv(separate_csv_dir / f"{filename}.csv", index=False)
+        df.to_parquet(separate_parquet_dir / f"{filename}.parquet", index=False)
+
+        # Append to master list
+        compiled_csv.append(df)
+        compiled_parquet.append(df)
+        log.append((file.name, rows_before, rows_after))
+
+    except Exception as e:
+        log.append((file.name, "ERROR", str(e)))
+
+# COMPILE ALL TO ONE FILE
+if compiled_csv:
+    pd.concat(compiled_csv, ignore_index=True).to_csv(compiled_csv_path, index=False)
+if compiled_parquet:
+    pd.concat(compiled_parquet, ignore_index=True).to_parquet(compiled_parquet_path, index=False)
+
+# LOG OUTPUT
+print("\n=== Processing Summary ===")
+for fname, before, after in log:
+    print(f"{fname}: rows before = {before}, rows after = {after}")
+print(f"\nTotal rows compiled: {sum([x[2] for x in log if isinstance(x[2], int)])}")
