@@ -1,0 +1,15 @@
+1) The source of AIS data is:
+Norway: https://hais.kystverket.no/
+Denmark: https://web.ais.dk/aisdata/
+
+2) For the KPI development I used 4 months AIS data: 
+Norway: 01-01-2024 to 30-04-2024
+Denmark: 01-01-2025 to 20-04-2025
+
+3) Selected number of termianls were focused for KPIs development for both Norway and Denmark.
+
+4) To find out terminals geo fence, I used following source: 
+SMDG Terminal Code List (TCL): https://www.google.com/maps/d/u/0/viewer?mid=1nbJI9NkpAayVpSJqy13qJ2xhatcIKQJK&ll=53.51911099493864%2C9.967149004877824&z=13
+
+5) To draw polygons and measure terminal quay lengths I used google maps.
+
